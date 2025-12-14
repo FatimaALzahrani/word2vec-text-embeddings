@@ -1,5 +1,4 @@
 from gensim.models import Word2Vec
-import numpy as np
 
 sentences = [
     "The cat sat on the mat.",
@@ -9,42 +8,31 @@ sentences = [
     "Dogs are loyal animals."
 ]
 
-# Preprocess
-tokenized_sentences = [sentence.lower().replace(".", "").split() for sentence in sentences]
+def normalize_token(token: str) -> str:
+    if token == "cats":
+        return "cat"
+    if token == "dogs":
+        return "dog"
+    return token
 
-print("Training Word2Vec model...")
-print("Tokenized sentences:")
-for i, tokens in enumerate(tokenized_sentences, 1):
-    print(f"  {i}. {tokens}")
-print()
+tokenized_sentences = [
+    [normalize_token(w) for w in sentence.lower().replace(".", "").split()]
+    for sentence in sentences
+]
 
-# Train Word2Vec model
 model = Word2Vec(
     sentences=tokenized_sentences,
-    vector_size=100,
+    vector_size=30,
     window=5,
     min_count=1,
-    workers=4,
-    sg=1,  # Using skip-gram algorithm
-    epochs=100
+    sg=1,
+    epochs=200
 )
 
+cat_vector = model.wv["cat"]
+print(len(cat_vector))
+print(cat_vector)
 
-
-# retrieve and print the vector representation of "cat"
-cat_vector = model.wv['cat']
-print(f"Dimensionality: {len(cat_vector)}")
-print(f"Vector: {cat_vector}")
-print()
-
-# find and print the top 5 most similar words to "cat"
-try:
-    similar_words = model.wv.most_similar('cat', topn=5)
-    for rank, (word, similarity) in enumerate(similar_words, 1):
-        print(f"  {rank}. {word:15s} (similarity: {similarity:.4f})")
-except Exception as e:
-    print(f"{e}")
-
-
-print(f"Total words in vocabulary: {len(model.wv)}")
-print(f"Words: {list(model.wv.index_to_key)}")
+similar_words = model.wv.most_similar("cat", topn=5)
+for word, similarity in similar_words:
+    print(word, similarity)
